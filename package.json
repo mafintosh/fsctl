@@ -1,6 +1,6 @@
 {
   "name": "fsctl",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Series of small native fd utils for manipulating file attributes and more",
   "main": "index.js",
   "dependencies": {
