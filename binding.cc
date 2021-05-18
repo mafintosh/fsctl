@@ -66,12 +66,16 @@ NAPI_METHOD(fsctl_native_unlock) {
 static void on_punchhole (napi_env env, void* data) {
   fsctl_native_punchhole_t *f = (fsctl_native_punchhole_t *) data;
 
+  #ifdef __linux__
+  f->result = fallocate(f->fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, f->start, f->length);
+  #else
   fpunchhole_t s = {
     .fp_offset = f->start,
     .fp_length = f->length
   };
 
   f->result = fcntl(f->fd, F_PUNCHHOLE, &s);
+  #endif
 }
 
 static void on_punchhole_complete (napi_env env, napi_status status, void* data) {
