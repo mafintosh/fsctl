@@ -1,6 +1,6 @@
 # fsctl
 
-Series of small native fd utils for manipulating file attributes and more
+Native utilities for file manipulation, including locking and hole punching.
 
 ```
 npm install fsctl
@@ -9,40 +9,40 @@ npm install fsctl
 ## Usage
 
 ``` js
-const { lock, unlock, sparse } = require('fsctl')
-
-// Can we lock the file using the fd?
-console.log(lock(fd))
-
-// Can we unlock it?
-console.log(unlock(fd))
-
-// Can we set the file as sparse?
-console.log(sparse(fd))
+// TODO
 ```
 
 ## API
 
-#### `bool = fsctl.lock(fd)`
+#### `await fsctl.lock(fd[, offset[, length]][, options])`
 
-Try to lock access to a file using a file descriptor.
-Returns true if the file could be locked, false if not.
+Request a process level lock on a file, resolving when the lock is granted. If another process holds the lock, the lock will not be granted until the other process either exits or releases the lock.
 
-Note that the lock is only advisory and there is nothing stopping someone from accessing the file by simply ignoring the lock.
+To lock only a portion of the file, `offset` and `length` may be passed. A `length` of `0` will request a lock from `offset` to the end of the file.
 
-Works across processes as well.
+Options include:
 
-#### `bool = fsctl.unlock(fd)`
+```js
+{
+  // If `true`, request an exclusive lock, i.e. a write lock, on the file. By
+  // default, a shared lock, i.e. a read lock, is requested.
+  exclusive: false
+}
+```
 
-Unlocks a file if you have the lock.
+#### `const granted = fsctl.tryLock(fd[, offset[, length]][, options])`
 
-#### `bool = fsctl.sparse(fd)`
+Request a process level lock on a file, returning `true` if the lock was granted or `false` if another process currently holds the lock.
 
-Set the file as sparse (ie allow it to have unallocated holes)
+Options are the same as `fsctl.lock()`.
 
-## Credits
+#### `fsctl.unlock(fd[, offset[, length]])`
 
-Thanks to @xori for adding the sparse util.
+Release a process level lock on a file.
+
+#### `await fsctl.punchHole(fd, offset, length)`
+
+Punch a hole in a file at `offset` for `length` bytes. On file systems that support sparse files, holes will take up no physical space.
 
 ## License
 
