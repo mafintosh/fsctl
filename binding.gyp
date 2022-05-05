@@ -19,6 +19,11 @@
           './src/mac.c'
         ],
       }],
+      ['OS=="linux"', {
+        'sources': [
+          './src/linux.c'
+        ],
+      }],
       ['OS=="win"', {
         'sources': [
           './src/win.c'
