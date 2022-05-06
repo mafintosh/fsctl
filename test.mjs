@@ -13,17 +13,16 @@ test('lock', async t => {
 test('punch hole', async t => {
   const file = await open('test/fixture/sparse.txt', 'w+')
 
-  const write = Buffer.from('hello world')
+  const empty = 1024 * 1024 * 10 // 10 MB
 
-  await file.write(write, 0, 11, 1024 * 10)
+  const write = Buffer.from('hello world')
+  await file.write(write, 0, 11, empty)
 
   setSparse(file.fd)
-
-  await punchHole(file.fd, 0, 1024 * 10)
+  await punchHole(file.fd, 0, empty)
 
   const read = Buffer.alloc(11)
-
-  await file.read(read, 0, 11, 1024 * 10)
+  await file.read(read, 0, 11, empty)
 
   t.alike(read, write)
 })
