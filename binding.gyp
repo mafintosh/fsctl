@@ -4,7 +4,10 @@
     'include_dirs': [
       '<!(node -e "require(\'napi-macros\')")'
     ],
-    'sources': ['./binding.c'],
+    'sources': [
+      './src/shared.c',
+      './binding.c'
+    ],
     'configurations': {
       'Debug': {
         'defines': ['DEBUG'],

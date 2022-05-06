@@ -15,7 +15,7 @@ test('punch hole', async t => {
 
   await file.write(Buffer.alloc(1024 * 10, 0x00))
 
-  await punchHole(file.fd)
+  await punchHole(file.fd, 0, 1024 * 10)
 
   t.pass('hole punched')
 })

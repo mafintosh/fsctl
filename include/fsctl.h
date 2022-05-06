@@ -65,6 +65,9 @@ fsctl_unlock (uv_os_fd_t fd, uint64_t offset, size_t length);
 int
 fsctl_punch_hole (uv_loop_t *loop, fsctl_punch_hole_t *req, uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_punch_hole_cb cb);
 
+int
+fsctl_set_sparse (uv_os_fd_t fd);
+
 #ifdef __cplusplus
 }
 #endif

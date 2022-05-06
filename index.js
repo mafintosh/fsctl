@@ -33,7 +33,9 @@ exports.lock = function lock (fd, offset = 0, length = 0, opts = {}) {
     ctx.reject = reject
   })
 
-  binding.fsctl_napi_lock(req, fd, offset, length, opts.exclusive ? 1 : 0, ctx, onwork)
+  const errno = binding.fsctl_napi_lock(req, fd, offset, length, opts.exclusive ? 1 : 0, ctx, onwork)
+
+  if (errno < 0) throw toError(errno)
 
   return promise
 }
@@ -83,9 +85,17 @@ exports.punchHole = function punchHole (fd, offset, length) {
     ctx.reject = reject
   })
 
-  binding.fsctl_napi_punch_hole(req, fd, offset, length, ctx, onwork)
+  const errno = binding.fsctl_napi_punch_hole(req, fd, offset, length, ctx, onwork)
+
+  if (errno < 0) throw toError(errno)
 
   return promise
+}
+
+exports.setSparse = function setSparse (fd) {
+  const errno = binding.fsctl_napi_set_sparse(fd)
+
+  if (errno < 0) throw toError(errno)
 }
 
 function toError (errno) {

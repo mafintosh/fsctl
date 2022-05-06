@@ -44,6 +44,12 @@ Release a process level lock on a file.
 
 Punch a hole in a file at `offset` for `length` bytes. On file systems that support sparse files, holes will take up no physical space.
 
+On Windows, the file must first be marked sparse using `fsctl.setSparse(fd)`. Otherwise, zeros will be explicitly written to the hole.
+
+#### `fsctl.setSparse(fd)`
+
+Mark a file as sparse. On Windows, this operation is required before holes can be punched in the file. On other systems, this operation has no effect.
+
 ## License
 
 MIT
