@@ -25,7 +25,7 @@ fsctl__lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t ty
     0,
     length,
     length >> 32,
-    &data,
+    &data
   );
 
   return res ? 0 : uv_translate_sys_error(GetLastError());
@@ -51,7 +51,7 @@ fsctl__try_lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_
     0,
     length,
     length >> 32,
-    &data,
+    &data
   );
 
   return res ? 0 : uv_translate_sys_error(GetLastError());
@@ -73,7 +73,7 @@ fsctl__unlock (uv_os_fd_t fd, uint64_t offset, size_t length) {
     0,
     length,
     length >> 32,
-    &data,
+    &data
   );
 
   return res ? 0 : uv_translate_sys_error(GetLastError());
@@ -98,7 +98,7 @@ fsctl__punch_hole (uv_os_fd_t fd, uint64_t offset, size_t length) {
     NULL,
     0,
     NULL,
-    NULL,
+    NULL
   );
 
   return res ? 0 : uv_translate_sys_error(GetLastError());
