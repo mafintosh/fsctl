@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <uv.h>
 
 #include "../include/fsctl.h"
 #include "platform.h"

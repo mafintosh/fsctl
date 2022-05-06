@@ -1,7 +1,6 @@
 #include <errno.h>
 #include <fcntl.h>
-#include <stdbool.h>
-#include <string.h>
+#include <stdint.h>
 #include <uv.h>
 
 #include "../include/fsctl.h"
