@@ -89,6 +89,8 @@ fsctl__punch_hole (uv_os_fd_t fd, uint64_t offset, size_t length) {
     },
   };
 
+  DWORD bytes;
+
   BOOL res = DeviceIoControl(
     fd,
     FSCTL_SET_ZERO_DATA,
@@ -96,7 +98,7 @@ fsctl__punch_hole (uv_os_fd_t fd, uint64_t offset, size_t length) {
     sizeof(data),
     NULL,
     0,
-    NULL,
+    &bytes, // Must be passed when lpOverlapped is NULL
     NULL
   );
 
@@ -105,7 +107,18 @@ fsctl__punch_hole (uv_os_fd_t fd, uint64_t offset, size_t length) {
 
 int
 fsctl__set_sparse (uv_os_fd_t fd) {
-  BOOL res = DeviceIoControl(fd, FSCTL_SET_SPARSE, NULL, 0, NULL, 0, NULL, NULL);
+  DWORD bytes;
+
+  BOOL res = DeviceIoControl(
+    fd,
+    FSCTL_SET_SPARSE,
+    NULL,
+    0,
+    NULL,
+    0,
+    &bytes, // Must be passed when lpOverlapped is NULL
+    NULL
+  );
 
   return res ? 0 : uv_translate_sys_error(GetLastError());
 }
