@@ -4,7 +4,7 @@
 
 #include "../include/fsctl.h"
 
-static int
+int
 fsctl__punch_hole (uv_os_fd_t fd, uint64_t offset, size_t length) {
   struct fpunchhole fpunchhole = {
     .fp_flags = 0,
@@ -14,5 +14,6 @@ fsctl__punch_hole (uv_os_fd_t fd, uint64_t offset, size_t length) {
   };
 
   int res = fcntl(fd, F_PUNCHHOLE, &fpunchhole);
+
   return res == -1 ? uv_translate_sys_error(errno) : res;
 }

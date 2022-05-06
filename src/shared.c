@@ -7,7 +7,7 @@ static void
 fsctl__lock_work (uv_work_t *req) {
   fsctl_lock_t *r = (fsctl_lock_t *) req->data;
 
-  r->result = fsctl__lock(r->fd, r->offset, r->length, r->type, true);
+  r->result = fsctl__lock(r->fd, r->offset, r->length, r->type);
 }
 
 static void
@@ -31,7 +31,7 @@ fsctl_lock (uv_loop_t *loop, fsctl_lock_t *req, uv_os_fd_t fd, uint64_t offset, 
 
 int
 fsctl_try_lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type) {
-  int err = fsctl__lock(fd, offset, length, type, false);
+  int err = fsctl__try_lock(fd, offset, length, type);
 
   if (err == UV_EACCES || err == UV_EAGAIN) err = UV_EAGAIN;
 

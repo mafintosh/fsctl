@@ -6,7 +6,10 @@
 #include <uv.h>
 
 int
-fsctl__lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type, bool block);
+fsctl__lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type);
+
+int
+fsctl__try_lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type);
 
 int
 fsctl__unlock (uv_os_fd_t fd, uint64_t offset, size_t length);
