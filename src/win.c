@@ -13,7 +13,7 @@ fsctl__lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t ty
 
   if (type == FSCTL_WRLOCK) flags |= LOCKFILE_EXCLUSIVE_LOCK;
 
-  OVERLAPPED overlapped = {
+  OVERLAPPED data = {
     .hEvent = 0,
     .Offset = offset,
     .OffsetHigh = offset >> 32,
@@ -25,7 +25,7 @@ fsctl__lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t ty
     0,
     length,
     length >> 32,
-    &overlapped,
+    &data,
   );
 
   return res ? 0 : uv_translate_sys_error(GetLastError());
@@ -39,7 +39,7 @@ fsctl__try_lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_
 
   if (type == FSCTL_WRLOCK) flags |= LOCKFILE_EXCLUSIVE_LOCK;
 
-  OVERLAPPED overlapped = {
+  OVERLAPPED data = {
     .hEvent = 0,
     .Offset = offset,
     .OffsetHigh = offset >> 32,
@@ -51,7 +51,7 @@ fsctl__try_lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_
     0,
     length,
     length >> 32,
-    &overlapped,
+    &data,
   );
 
   return res ? 0 : uv_translate_sys_error(GetLastError());
@@ -61,7 +61,7 @@ int
 fsctl__unlock (uv_os_fd_t fd, uint64_t offset, size_t length) {
   if (length == 0) length = SIZE_MAX;
 
-  OVERLAPPED overlapped = {
+  OVERLAPPED data = {
     .hEvent = 0,
     .Offset = offset,
     .OffsetHigh = offset >> 32,
@@ -73,7 +73,32 @@ fsctl__unlock (uv_os_fd_t fd, uint64_t offset, size_t length) {
     0,
     length,
     length >> 32,
-    &overlapped,
+    &data,
+  );
+
+  return res ? 0 : uv_translate_sys_error(GetLastError());
+}
+
+int
+fsctl__punch_hole (uv_os_fd_t fd, uint64_t offset, size_t length) {
+  FILE_ZERO_DATA_INFORMATION data = {
+    .FileOffset = {
+      .QuadPart = offset,
+    },
+    .BeyondFinalZero = {
+      .QuadPart = offset + length,
+    },
+  };
+
+  BOOL res = DeviceIoControl(
+    fd,
+    FSCTL_SET_ZERO_DATA,
+    &data,
+    sizeof(data),
+    NULL,
+    0,
+    NULL,
+    NULL,
   );
 
   return res ? 0 : uv_translate_sys_error(GetLastError());

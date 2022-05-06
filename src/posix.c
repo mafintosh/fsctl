@@ -8,7 +8,7 @@
 
 int
 fsctl__lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type) {
-  struct flock flock = {
+  struct flock data = {
     .l_start = offset,
     .l_len = length,
     .l_pid = 0,
@@ -16,14 +16,14 @@ fsctl__lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t ty
     .l_whence = SEEK_SET,
   };
 
-  int res = fcntl(fd, F_SETLKW, &flock);
+  int res = fcntl(fd, F_SETLKW, &data);
 
   return res == -1 ? uv_translate_sys_error(errno) : res;
 }
 
 int
 fsctl__try_lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type) {
-  struct flock flock = {
+  struct flock data = {
     .l_start = offset,
     .l_len = length,
     .l_pid = 0,
@@ -31,14 +31,14 @@ fsctl__try_lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_
     .l_whence = SEEK_SET,
   };
 
-  int res = fcntl(fd, F_SETLK, &flock);
+  int res = fcntl(fd, F_SETLK, &data);
 
   return res == -1 ? uv_translate_sys_error(errno) : res;
 }
 
 int
 fsctl__unlock (uv_os_fd_t fd, uint64_t offset, size_t length) {
-  struct flock flock = {
+  struct flock data = {
     .l_start = offset,
     .l_len = length,
     .l_pid = 0,
@@ -46,7 +46,7 @@ fsctl__unlock (uv_os_fd_t fd, uint64_t offset, size_t length) {
     .l_whence = SEEK_SET,
   };
 
-  int res = fcntl(fd, F_SETLK, &flock);
+  int res = fcntl(fd, F_SETLK, &data);
 
   return res == -1 ? uv_translate_sys_error(errno) : res;
 }
