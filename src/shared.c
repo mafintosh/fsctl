@@ -1,7 +1,7 @@
 #include <stdint.h>
 
 #include "../include/fsctl.h"
-#include "shared.h"
+#include "platform.h"
 
 static void
 fsctl__lock_work (uv_work_t *req) {

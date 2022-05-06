@@ -5,7 +5,7 @@
 #include <uv.h>
 
 #include "../include/fsctl.h"
-#include "shared.h"
+#include "platform.h"
 
 int
 fsctl__lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type) {
