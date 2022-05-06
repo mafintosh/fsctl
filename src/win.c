@@ -69,7 +69,6 @@ fsctl__unlock (uv_os_fd_t fd, uint64_t offset, size_t length) {
 
   BOOL res = UnlockFileEx(
     fd,
-    flags,
     0,
     length,
     length >> 32,

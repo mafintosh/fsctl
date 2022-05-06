@@ -119,7 +119,7 @@ NAPI_METHOD(fsctl_napi_unlock) {
   NAPI_ARGV_UINT32(offset, 1)
   NAPI_ARGV_UINT32(len, 2)
 
-  int err = fsctl_unlock(fd, offset, len);
+  int err = fsctl_unlock(uv_get_osfhandle(fd), offset, len);
 
   NAPI_RETURN_INT32(err);
 }
