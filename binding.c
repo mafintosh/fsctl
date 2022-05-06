@@ -151,6 +151,15 @@ NAPI_METHOD(fsctl_napi_punch_hole) {
   NAPI_RETURN_INT32(err);
 }
 
+NAPI_METHOD(fsctl_napi_set_sparse) {
+  NAPI_ARGV(1)
+  NAPI_ARGV_UINT32(fd, 0)
+
+  int err = fsctl_set_sparse(uv_get_osfhandle(fd));
+
+  NAPI_RETURN_INT32(err);
+}
+
 NAPI_INIT() {
   NAPI_EXPORT_SIZEOF(fsctl_napi_lock_t)
   NAPI_EXPORT_SIZEOF(fsctl_napi_punch_hole_t)
@@ -159,4 +168,5 @@ NAPI_INIT() {
   NAPI_EXPORT_FUNCTION(fsctl_napi_try_lock)
   NAPI_EXPORT_FUNCTION(fsctl_napi_unlock)
   NAPI_EXPORT_FUNCTION(fsctl_napi_punch_hole)
+  NAPI_EXPORT_FUNCTION(fsctl_napi_set_sparse)
 }
