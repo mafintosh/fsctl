@@ -8,8 +8,23 @@ npm install fsctl
 
 ## Usage
 
+Write to a file using an exclusive lock:
+
 ``` js
-// TODO
+const { open, write } = require('fs')
+const { lock, unlock } = require('fsctl')
+
+open('file.txt', 'a+', async (err, fd) => {
+  if (err) throw err
+
+  await lock(fd, { exclusive: true })
+
+  write(fd, 'hello world', async (err) => {
+    if (err) throw err
+
+    await unlock(fd)
+  })
+})
 ```
 
 ## API
@@ -19,6 +34,8 @@ npm install fsctl
 Request a process level lock on a file, resolving when the lock is granted. If another process holds the lock, the lock will not be granted until the other process either exits or releases the lock.
 
 To lock only a portion of the file, `offset` and `length` may be passed. A `length` of `0` will request a lock from `offset` to the end of the file.
+
+Note that the lock is only advisory and there is nothing stopping another process from accessing the file by simply ignoring the lock.
 
 Options include:
 
