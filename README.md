@@ -26,6 +26,9 @@ Options include:
 {
   // If `true`, request an exclusive lock, i.e. a write lock, on the file. By
   // default, a shared lock, i.e. a read lock, is requested.
+  // Be aware that an exclusive lock can only be granted to files that are
+  // writable! A request for an exclusive lock on a read-only file is ignored 
+  // and treated as a request for a shared lock.
   exclusive: false
 }
 ```

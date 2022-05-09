@@ -1,16 +1,9 @@
 import test from 'brittle'
 import { open } from 'fs/promises'
-import { lock, punchHole, setSparse } from './index.js'
 
-test('lock', async t => {
-  const file = await open('test/fixture/lock.txt', 'a+')
+import { punchHole, setSparse } from '../index.js'
 
-  await lock(file.fd, { exclusive: true })
-
-  t.pass('lock granted')
-})
-
-test('punch hole', async t => {
+test('punch hole', async (t) => {
   const file = await open('test/fixture/sparse.txt', 'w+')
 
   const empty = 1024 * 1024 * 10 // 10 MB

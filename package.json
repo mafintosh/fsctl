@@ -9,11 +9,12 @@
   },
   "devDependencies": {
     "brittle": "^2.3.1",
+    "minimist": "^1.2.6",
     "prebuildify": "^4.1.2",
     "standard": "^17.0.0"
   },
   "scripts": {
-    "test": "standard && brittle test.js",
+    "test": "standard && brittle test/*.mjs",
     "prebuild": "prebuildify --napi",
     "prebuild-ia32": "prebuildify --napi --arch=ia32",
     "install": "node-gyp-build"
