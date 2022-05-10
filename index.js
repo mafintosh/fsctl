@@ -105,5 +105,7 @@ function toError (errno) {
   err.errno = errno
   err.code = code
 
+  Error.captureStackTrace(err, toError)
+
   return err
 }
