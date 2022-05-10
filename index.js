@@ -2,12 +2,8 @@ const util = require('util')
 const binding = require('node-gyp-build')(__dirname)
 
 function onwork (errno) {
-  if (errno >= 0) this.resolve()
-  else {
-    const err = toError(errno)
-    Error.captureStackTrace(err, onwork)
-    this.reject(err)
-  }
+  if (errno < 0) this.reject(toError(errno, onwork))
+  else this.resolve()
 }
 
 exports.lock = function lock (fd, offset = 0, length = 0, opts = {}) {
@@ -39,7 +35,7 @@ exports.lock = function lock (fd, offset = 0, length = 0, opts = {}) {
 
   const errno = binding.fsctl_napi_lock(req, fd, offset, length, opts.exclusive ? 1 : 0, ctx, onwork)
 
-  if (errno < 0) throw toError(errno)
+  if (errno < 0) throw toError(errno, lock)
 
   return promise
 }
@@ -62,7 +58,7 @@ exports.tryLock = function tryLock (fd, offset = 0, length = 0, opts = {}) {
   const errno = binding.fsctl_napi_try_lock(fd, offset, length, opts.exclusive ? 1 : 0)
 
   if (errno < 0) {
-    const err = toError(errno)
+    const err = toError(errno, tryLock)
     if (err.code === 'EAGAIN') return false
     throw err
   }
@@ -73,7 +69,7 @@ exports.tryLock = function tryLock (fd, offset = 0, length = 0, opts = {}) {
 exports.unlock = function unlock (fd, offset = 0, length = 0) {
   const errno = binding.fsctl_napi_unlock(fd, offset, length)
 
-  if (errno < 0) throw toError(errno)
+  if (errno < 0) throw toError(errno, unlock)
 }
 
 exports.punchHole = function punchHole (fd, offset, length) {
@@ -91,7 +87,7 @@ exports.punchHole = function punchHole (fd, offset, length) {
 
   const errno = binding.fsctl_napi_punch_hole(req, fd, offset, length, ctx, onwork)
 
-  if (errno < 0) throw toError(errno)
+  if (errno < 0) throw toError(errno, punchHole)
 
   return promise
 }
@@ -99,17 +95,17 @@ exports.punchHole = function punchHole (fd, offset, length) {
 exports.setSparse = function setSparse (fd) {
   const errno = binding.fsctl_napi_set_sparse(fd)
 
-  if (errno < 0) throw toError(errno)
+  if (errno < 0) throw toError(errno, setSparse)
 }
 
-function toError (errno) {
+function toError (errno, caller = toError) {
   const [code, msg] = util.getSystemErrorMap().get(errno)
 
   const err = new Error(`${code}: ${msg}`)
   err.errno = errno
   err.code = code
 
-  Error.captureStackTrace(err, toError)
+  Error.captureStackTrace(err, caller)
 
   return err
 }
