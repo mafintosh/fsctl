@@ -30,13 +30,17 @@ on_fsctl_lock (fsctl_lock_t *req, int status) {
   napi_handle_scope scope;
   napi_open_handle_scope(env, &scope);
 
+  napi_value argv[1];
+
   napi_value ctx;
   napi_get_reference_value(env, r->ctx, &ctx);
 
   napi_value callback;
   napi_get_reference_value(env, r->cb, &callback);
 
-  NAPI_MAKE_CALLBACK(env, NULL, ctx, callback, 0, NULL, NULL);
+  napi_create_int32(env, req->result, &argv[0]);
+
+  NAPI_MAKE_CALLBACK(env, NULL, ctx, callback, 1, argv, NULL);
 
   napi_close_handle_scope(env, scope);
 
@@ -53,13 +57,17 @@ on_fsctl_punch_hole (fsctl_punch_hole_t *req, int status) {
   napi_handle_scope scope;
   napi_open_handle_scope(env, &scope);
 
+  napi_value argv[1];
+
   napi_value ctx;
   napi_get_reference_value(env, r->ctx, &ctx);
 
   napi_value callback;
   napi_get_reference_value(env, r->cb, &callback);
 
-  NAPI_MAKE_CALLBACK(env, NULL, ctx, callback, 0, NULL, NULL);
+  napi_create_int32(env, req->result, &argv[0]);
+
+  NAPI_MAKE_CALLBACK(env, NULL, ctx, callback, 1, argv, NULL);
 
   napi_close_handle_scope(env, scope);
 
