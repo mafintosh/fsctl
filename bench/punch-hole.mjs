@@ -11,18 +11,15 @@ for (let i = 12; i < 31; i++) {
     await file.write(Buffer.alloc(n, 0xff))
 
     b.start()
-    await count('before')
+    const { blocks: before } = await file.stat()
 
     await punchHole(file.fd, 0, n)
 
-    await count('after')
+    const { blocks: after } = await file.stat()
+
+    b.log(`${before} -> ${after} blocks`)
     b.end()
 
     await file.close()
-
-    async function count (msg) {
-      const { blocks } = await file.stat()
-      b.log(`blocks ${msg}: ${blocks}`)
-    }
   })
 }
