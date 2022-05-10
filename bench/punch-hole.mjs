@@ -8,8 +8,7 @@ for (let i = 12; i < 31; i++) {
 
   bench(`punching ${prettyBytes(n, { binary: true })}`, async function (b) {
     const file = await open(`bench/data/sparse-${n}.txt`, 'w+')
-
-    await file.write(Buffer.alloc(n))
+    await file.write(Buffer.alloc(n, 0xff))
 
     b.start()
     await punchHole(file.fd, 0, n)
