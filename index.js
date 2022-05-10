@@ -2,8 +2,12 @@ const util = require('util')
 const binding = require('node-gyp-build')(__dirname)
 
 function onwork (errno) {
-  if (errno < 0) this.reject(toError(errno))
-  else this.resolve()
+  if (errno >= 0) this.resolve()
+  else {
+    const err = toError(errno)
+    Error.captureStackTrace(err, onwork)
+    this.reject(err)
+  }
 }
 
 exports.lock = function lock (fd, offset = 0, length = 0, opts = {}) {
