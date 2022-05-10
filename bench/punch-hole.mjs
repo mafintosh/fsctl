@@ -6,7 +6,7 @@ import { punchHole } from '../index.js'
 for (let i = 12; i < 31; i++) {
   const n = 2 ** i
 
-  bench(`punching ${prettyBytes(n)}`, async function (b) {
+  bench(`punching ${prettyBytes(n, { binary: true })}`, async function (b) {
     const file = await open(`bench/data/sparse-${n}.txt`, 'w+')
 
     await file.write(Buffer.alloc(n))
