@@ -11,20 +11,18 @@ npm install fsctl
 Write to a file using an exclusive lock:
 
 ``` js
-const { open, write } = require('fs')
+const { open } = require('fs/promises')
 const { lock, unlock } = require('fsctl')
 
-open('file.txt', 'a+', async (err, fd) => {
-  if (err) throw err
+const file = await open('file.txt', 'a+')
 
-  await lock(fd, { exclusive: true })
+await lock(file.fd, { exclusive: true })
 
-  write(fd, 'hello world', async (err) => {
-    if (err) throw err
-
-    await unlock(fd)
-  })
-})
+try {
+  await file.write('hello world')
+} finally {
+  unlock(file.fd)
+}
 ```
 
 ## API
