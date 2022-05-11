@@ -1,12 +1,17 @@
 import test from 'brittle'
 import { fork } from 'child_process'
+import { open } from 'fs/promises'
+import { temporaryFile } from 'tempy'
 
 test('2 shared + 1 exclusive lock', async (t) => {
   const shared = t.test('grant shared locks')
   shared.plan(2)
 
-  const p1 = fork('test/fixture/lock.mjs')
-  const p2 = fork('test/fixture/lock.mjs')
+  const file = temporaryFile()
+  const handle = await open(file, 'w+')
+
+  const p1 = fork('test/fixture/lock.mjs', [file])
+  const p2 = fork('test/fixture/lock.mjs', [file])
 
   p1.on('message', (message) => {
     shared.alike(message, { granted: true }, 'lock granted')
@@ -21,7 +26,7 @@ test('2 shared + 1 exclusive lock', async (t) => {
   const deny = t.test('deny exclusive lock')
   deny.plan(1)
 
-  const p3 = fork('test/fixture/lock.mjs', [
+  const p3 = fork('test/fixture/lock.mjs', [file,
     '--mode', 'a+',
     '--exclusive'
   ])
@@ -50,4 +55,6 @@ test('2 shared + 1 exclusive lock', async (t) => {
   await grant
 
   p3.kill()
+
+  await handle.close()
 })

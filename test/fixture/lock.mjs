@@ -21,7 +21,7 @@ const options = {
   exclusive: argv.exclusive
 }
 
-const file = await open('test/fixture/lock.txt', argv.mode)
+const file = await open(argv._[0], argv.mode)
 
 if (!tryLock(file.fd, offset, length, options)) {
   process.send({ granted: false })

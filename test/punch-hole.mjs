@@ -1,10 +1,11 @@
 import test from 'brittle'
 import { open } from 'fs/promises'
+import { temporaryFile } from 'tempy'
 
 import { punchHole, setSparse } from '../index.js'
 
 test('punch hole', async (t) => {
-  const file = await open('test/fixture/sparse.txt', 'w+')
+  const file = await open(temporaryFile(), 'w+')
 
   const { blksize } = await file.stat()
 
@@ -23,7 +24,7 @@ test('punch hole', async (t) => {
 })
 
 test('unaligned hole', { skip: process.platform === 'darwin' }, async (t) => {
-  const file = await open('test/fixture/sparse.txt', 'w+')
+  const file = await open(temporaryFile(), 'w+')
 
   const { blksize } = await file.stat()
 
