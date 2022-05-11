@@ -66,6 +66,8 @@ Punch a hole in a file at `offset` for `length` bytes. On file systems that supp
 
 On Windows, the file must first be marked sparse using `fsctl.setSparse(fd)`. Otherwise, zeros will be explicitly written to the hole.
 
+On macOS, the hole must be aligned to block boundaries as the call will otherwise fail.
+
 #### `fsctl.setSparse(fd)`
 
 Mark a file as sparse. On Windows, this operation is required before holes can be punched in the file. On other systems, this operation has no effect.
