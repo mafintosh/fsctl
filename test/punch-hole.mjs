@@ -12,14 +12,15 @@ test('punch hole', async (t) => {
   const write = Buffer.from('hello world')
   await file.write(write)
 
-  const { blocks: blocksBefore } = await file.stat()
-  t.comment('blocks before: ' + blocksBefore)
+  const { blocks: before } = await file.stat()
 
   setSparse(file.fd)
   await punchHole(file.fd, 0, empty.byteLength)
 
-  const { blocks: blocksAfter } = await file.stat()
-  t.comment('blocks after: ' + blocksAfter)
+  const { blocks: after } = await file.stat()
+
+  t.comment(`${before} -> ${after} blocks`)
+  t.ok(after < before, 'blocks reduced')
 
   const read = Buffer.alloc(11)
   await file.read(read, 0, 11, empty.byteLength)
