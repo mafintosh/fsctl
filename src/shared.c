@@ -34,7 +34,9 @@ int
 fsctl_try_lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type) {
   int err = fsctl__try_lock(fd, offset, length, type);
 
-  if (err == UV_EACCES || err == UV_EAGAIN) err = UV_EAGAIN;
+  if (err == UV_EACCES || err == UV_EAGAIN || err == UV_EBUSY) {
+    err = UV_EAGAIN;
+  }
 
   return err;
 }
