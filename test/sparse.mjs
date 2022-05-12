@@ -6,6 +6,7 @@ import { punchHole, setSparse } from '../index.js'
 
 test('explicit hole', async (t) => {
   const file = await open(temporaryFile(), 'w+')
+  setSparse(file.fd)
 
   const { blksize } = await file.stat()
 
@@ -25,7 +26,6 @@ test('explicit hole', async (t) => {
 
 test('implicit hole', async (t) => {
   const file = await open(temporaryFile(), 'w+')
-
   setSparse(file.fd)
 
   const { blksize } = await file.stat()
@@ -36,14 +36,14 @@ test('implicit hole', async (t) => {
   await file.write(write, 0, write.byteLength, empty)
 
   const { blocks } = await file.stat()
-  t.comment(`${blocks} blocks`)
 
-  // TODO: assert
+  t.comment(`${blocks} blocks`)
   t.pass()
 })
 
 test('unaligned hole', { skip: process.platform === 'darwin' }, async (t) => {
   const file = await open(temporaryFile(), 'w+')
+  setSparse(file.fd)
 
   const { blksize } = await file.stat()
 
@@ -54,10 +54,7 @@ test('unaligned hole', { skip: process.platform === 'darwin' }, async (t) => {
 })
 
 async function testPunchHole (t, file, offset, length) {
-  await testReducesBlocks(t, file, async () => {
-    setSparse(file.fd)
-    await punchHole(file.fd, offset, length)
-  })
+  await testReducesBlocks(t, file, () => punchHole(file.fd, offset, length))
 }
 
 async function testReducesBlocks (t, file, fn) {
