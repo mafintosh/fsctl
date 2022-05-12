@@ -26,6 +26,8 @@ test('explicit hole', async (t) => {
 test('implicit hole', async (t) => {
   const file = await open(temporaryFile(), 'w+')
 
+  setSparse(file.fd)
+
   const { blksize } = await file.stat()
 
   const empty = blksize * 1000
