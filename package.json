@@ -1,18 +1,23 @@
 {
   "name": "fsctl",
   "version": "1.0.0",
-  "description": "Series of small native fd utils for manipulating file attributes and more",
+  "description": "Native utilities for file manipulation, including locking and hole punching",
   "main": "index.js",
   "dependencies": {
     "napi-macros": "^2.0.0",
     "node-gyp-build": "^4.2.3"
   },
   "devDependencies": {
+    "brittle": "^2.3.1",
+    "minimist": "^1.2.6",
+    "nanobench": "^2.1.1",
     "prebuildify": "^4.1.2",
-    "tape": "^4.9.2"
+    "pretty-bytes": "^6.0.0",
+    "standard": "^17.0.0",
+    "tempy": "^3.0.0"
   },
   "scripts": {
-    "test": "tape test.js",
+    "test": "standard && brittle test/*.mjs",
     "prebuild": "prebuildify --napi",
     "prebuild-ia32": "prebuildify --napi --arch=ia32",
     "install": "node-gyp-build"

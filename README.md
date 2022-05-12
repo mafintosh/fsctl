@@ -1,6 +1,6 @@
 # fsctl
 
-Series of small native fd utils for manipulating file attributes and more
+Native utilities for file manipulation, including locking and hole punching.
 
 ```
 npm install fsctl
@@ -8,41 +8,67 @@ npm install fsctl
 
 ## Usage
 
+Write to a file using an exclusive lock:
+
 ``` js
-const { lock, unlock, sparse } = require('fsctl')
+const { open } = require('fs/promises')
+const { lock, unlock } = require('fsctl')
 
-// Can we lock the file using the fd?
-console.log(lock(fd))
+const file = await open('file.txt', 'a+')
 
-// Can we unlock it?
-console.log(unlock(fd))
+await lock(file.fd, { exclusive: true })
 
-// Can we set the file as sparse?
-console.log(sparse(fd))
+try {
+  await file.write('hello world')
+} finally {
+  unlock(file.fd)
+}
 ```
 
 ## API
 
-#### `bool = fsctl.lock(fd)`
+#### `await fsctl.lock(fd[, offset[, length]][, options])`
 
-Try to lock access to a file using a file descriptor.
-Returns true if the file could be locked, false if not.
+Request a process level lock on a file, resolving when the lock is granted. If another process holds the lock, the lock will not be granted until the other process either exits or releases the lock.
 
-Note that the lock is only advisory and there is nothing stopping someone from accessing the file by simply ignoring the lock.
+To lock only a portion of the file, `offset` and `length` may be passed. A `length` of `0` will request a lock from `offset` to the end of the file.
 
-Works across processes as well.
+Note that the lock is only advisory and there is nothing stopping another process from accessing the file by simply ignoring the lock.
 
-#### `bool = fsctl.unlock(fd)`
+Options include:
 
-Unlocks a file if you have the lock.
+```js
+{
+  // If `true`, request an exclusive lock, i.e. a write lock, on the file. By
+  // default, a shared lock, i.e. a read lock, is requested.
+  // Be aware that an exclusive lock can only be granted to files that are
+  // writable! A request for an exclusive lock on a read-only file is ignored 
+  // and treated as a request for a shared lock.
+  exclusive: false
+}
+```
 
-#### `bool = fsctl.sparse(fd)`
+#### `const granted = fsctl.tryLock(fd[, offset[, length]][, options])`
 
-Set the file as sparse (ie allow it to have unallocated holes)
+Request a process level lock on a file, returning `true` if the lock was granted or `false` if another process currently holds the lock.
 
-## Credits
+Options are the same as `fsctl.lock()`.
 
-Thanks to @xori for adding the sparse util.
+#### `fsctl.unlock(fd[, offset[, length]])`
+
+Release a process level lock on a file.
+
+#### `await fsctl.punchHole(fd, offset, length)`
+
+Punch a hole in a file at `offset` for `length` bytes. On file systems that support sparse files, holes will take up no physical space.
+
+On Windows, the file must first be marked sparse using `fsctl.setSparse(fd)`. Otherwise, zeros will be explicitly written to the hole.
+
+On macOS, the hole must be aligned to block boundaries as the call will otherwise fail.
+
+#### `fsctl.setSparse(fd)`
+
+Mark a file as sparse. On Windows, this operation is required before holes can be punched in the file. On other systems, this operation has no effect.
 
 ## License
 

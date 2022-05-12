@@ -1,3 +1,5 @@
 node_modules
 sandbox.js
 build
+coverage
+package-lock.json
