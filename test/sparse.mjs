@@ -4,7 +4,7 @@ import { temporaryFile } from 'tempy'
 
 import { punchHole, setSparse } from '../index.js'
 
-test('punch hole', async (t) => {
+test('explicit hole', async (t) => {
   const file = await open(temporaryFile(), 'w+')
 
   const { blksize } = await file.stat()
@@ -17,10 +17,27 @@ test('punch hole', async (t) => {
 
   await testPunchHole(t, file, 0, empty.byteLength)
 
-  const read = Buffer.alloc(11)
-  await file.read(read, 0, 11, empty.byteLength)
+  const read = Buffer.alloc(write.byteLength)
+  await file.read(read, 0, write.byteLength, empty.byteLength)
 
   t.alike(read, write, 'file is intact')
+})
+
+test('implicit hole', async (t) => {
+  const file = await open(temporaryFile(), 'w+')
+
+  const { blksize } = await file.stat()
+
+  const empty = blksize * 1000
+
+  const write = Buffer.from('hello world')
+  await file.write(write, 0, write.byteLength, empty)
+
+  const { blocks } = await file.stat()
+  t.comment(`${blocks} blocks`)
+
+  // TODO: assert
+  t.pass()
 })
 
 test('unaligned hole', { skip: process.platform === 'darwin' }, async (t) => {
@@ -35,10 +52,16 @@ test('unaligned hole', { skip: process.platform === 'darwin' }, async (t) => {
 })
 
 async function testPunchHole (t, file, offset, length) {
+  await testReducesBlocks(t, file, async () => {
+    setSparse(file.fd)
+    await punchHole(file.fd, offset, length)
+  })
+}
+
+async function testReducesBlocks (t, file, fn) {
   const { blocks: before } = await file.stat()
 
-  setSparse(file.fd)
-  await punchHole(file.fd, offset, length)
+  await fn()
 
   const { blocks: after } = await file.stat()
 
