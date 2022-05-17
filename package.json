@@ -1,6 +1,6 @@
 {
   "name": "fsctl",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Native utilities for file manipulation, including locking and hole punching",
   "main": "index.js",
   "dependencies": {
