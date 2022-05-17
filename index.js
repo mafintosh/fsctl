@@ -93,6 +93,9 @@ exports.punchHole = function punchHole (fd, offset, length) {
 }
 
 exports.sparse = function sparse (fd) {
+  // Short circuit on everything but Windows
+  if (process.platform !== 'win32') return Promise.resolve()
+
   const req = Buffer.alloc(binding.sizeof_fsctl_napi_sparse_t)
   const ctx = {
     req,
