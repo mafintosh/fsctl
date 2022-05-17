@@ -35,7 +35,7 @@ exports.lock = function lock (fd, offset = 0, length = 0, opts = {}) {
 
   const errno = binding.fsctl_napi_lock(req, fd, offset, length, opts.exclusive ? 1 : 0, ctx, onwork)
 
-  if (errno < 0) throw toError(errno)
+  if (errno < 0) return Promise.reject(toError(errno))
 
   return promise
 }
@@ -87,15 +87,32 @@ exports.punchHole = function punchHole (fd, offset, length) {
 
   const errno = binding.fsctl_napi_punch_hole(req, fd, offset, length, ctx, onwork)
 
-  if (errno < 0) throw toError(errno)
+  if (errno < 0) return Promise.reject(toError(errno))
 
   return promise
 }
 
-exports.setSparse = function setSparse (fd) {
-  const errno = binding.fsctl_napi_set_sparse(fd)
+exports.sparse = function sparse (fd) {
+  // Short circuit on everything but Windows
+  if (process.platform !== 'win32') return Promise.resolve()
 
-  if (errno < 0) throw toError(errno)
+  const req = Buffer.alloc(binding.sizeof_fsctl_napi_sparse_t)
+  const ctx = {
+    req,
+    resolve: null,
+    reject: null
+  }
+
+  const promise = new Promise((resolve, reject) => {
+    ctx.resolve = resolve
+    ctx.reject = reject
+  })
+
+  const errno = binding.fsctl_napi_sparse(req, fd, ctx, onwork)
+
+  if (errno < 0) return Promise.reject(toError(errno))
+
+  return promise
 }
 
 function toError (errno) {
