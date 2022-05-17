@@ -92,10 +92,24 @@ exports.punchHole = function punchHole (fd, offset, length) {
   return promise
 }
 
-exports.setSparse = function setSparse (fd) {
-  const errno = binding.fsctl_napi_set_sparse(fd)
+exports.sparse = function sparse (fd) {
+  const req = Buffer.alloc(binding.sizeof_fsctl_napi_sparse_t)
+  const ctx = {
+    req,
+    resolve: null,
+    reject: null
+  }
+
+  const promise = new Promise((resolve, reject) => {
+    ctx.resolve = resolve
+    ctx.reject = reject
+  })
+
+  const errno = binding.fsctl_napi_sparse(req, fd, ctx, onwork)
 
   if (errno < 0) throw toError(errno)
+
+  return promise
 }
 
 function toError (errno) {

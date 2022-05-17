@@ -106,7 +106,7 @@ fsctl__punch_hole (uv_os_fd_t fd, uint64_t offset, size_t length) {
 }
 
 int
-fsctl__set_sparse (uv_os_fd_t fd) {
+fsctl__sparse (uv_os_fd_t fd) {
   DWORD bytes;
 
   BOOL res = DeviceIoControl(

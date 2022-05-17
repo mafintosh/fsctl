@@ -71,7 +71,25 @@ fsctl_punch_hole (uv_loop_t *loop, fsctl_punch_hole_t *req, uv_os_fd_t fd, uint6
   return uv_queue_work(loop, &req->req, fsctl__punch_hole_work, fsctl__punch_hole_after_work);
 }
 
+static void
+fsctl__sparse_work (uv_work_t *req) {
+  fsctl_sparse_t *r = (fsctl_sparse_t *) req->data;
+
+  r->result = fsctl__sparse(r->fd);
+}
+
+static void
+fsctl__sparse_after_work (uv_work_t *req, int status) {
+  fsctl_sparse_t *r = (fsctl_sparse_t *) req->data;
+
+  if (r->cb) r->cb(r, r->result);
+}
+
 int
-fsctl_set_sparse (uv_os_fd_t fd) {
-  return fsctl__set_sparse(fd);
+fsctl_sparse (uv_loop_t *loop, fsctl_sparse_t *req, uv_os_fd_t fd, fsctl_sparse_cb cb) {
+  req->fd = fd;
+  req->cb = cb;
+  req->req.data = (void *) req;
+
+  return uv_queue_work(loop, &req->req, fsctl__sparse_work, fsctl__sparse_after_work);
 }

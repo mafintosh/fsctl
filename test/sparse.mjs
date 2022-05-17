@@ -2,11 +2,11 @@ import test from 'brittle'
 import { open } from 'fs/promises'
 import { temporaryFile } from 'tempy'
 
-import { punchHole, setSparse } from '../index.js'
+import { punchHole, sparse } from '../index.js'
 
 test('explicit hole', async (t) => {
   const file = await open(temporaryFile(), 'w+')
-  setSparse(file.fd)
+  await sparse(file.fd)
 
   const { blksize } = await file.stat()
 
@@ -26,7 +26,7 @@ test('explicit hole', async (t) => {
 
 test('implicit hole', async (t) => {
   const file = await open(temporaryFile(), 'w+')
-  setSparse(file.fd)
+  await sparse(file.fd)
 
   const { blksize } = await file.stat()
 
@@ -43,7 +43,7 @@ test('implicit hole', async (t) => {
 
 test('unaligned hole', { skip: process.platform === 'darwin' }, async (t) => {
   const file = await open(temporaryFile(), 'w+')
-  setSparse(file.fd)
+  await sparse(file.fd)
 
   const { blksize } = await file.stat()
 
