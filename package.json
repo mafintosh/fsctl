@@ -19,7 +19,6 @@
   "scripts": {
     "test": "standard && brittle test/*.mjs",
     "prebuild": "prebuildify --napi",
-    "prebuild-ia32": "prebuildify --napi --arch=ia32",
     "install": "node-gyp-build"
   },
   "repository": {
