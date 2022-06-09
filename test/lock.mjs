@@ -2,6 +2,7 @@ import test from 'brittle'
 import { fork } from 'child_process'
 import { open } from 'fs/promises'
 import { temporaryFile } from 'tempy'
+import { lock } from '../index.js'
 
 test('2 shared + 1 exclusive lock', async (t) => {
   const shared = t.test('grant shared locks')
@@ -57,4 +58,18 @@ test('2 shared + 1 exclusive lock', async (t) => {
   p3.kill()
 
   await handle.close()
+})
+
+test('2 shared + 1 exclusive lock, same process', async (t) => {
+  const file = temporaryFile()
+
+  const a = await open(file, 'w+')
+  const b = await open(file, 'w+')
+  const c = await open(file, 'w+')
+
+  await lock(a.fd)
+  await lock(b.fd)
+  await lock(c.fd, { exclusive: true })
+
+  t.pass()
 })
