@@ -4,6 +4,9 @@ import { open } from 'fs/promises'
 import { temporaryFile } from 'tempy'
 import { tryLock, unlock } from '../index.js'
 
+const isDarwin = process.platform === 'darwin'
+const isWindows = process.platform === 'win32'
+
 test('2 exclusive locks, same fd', async (t) => {
   const file = temporaryFile()
 
@@ -11,10 +14,15 @@ test('2 exclusive locks, same fd', async (t) => {
   t.teardown(() => handle.close())
 
   t.ok(tryLock(handle.fd, { exclusive: true }), 'lock granted')
-  t.ok(tryLock(handle.fd, { exclusive: true }), 'lock granted')
+
+  if (isWindows) {
+    t.absent(tryLock(handle.fd, { exclusive: true }), 'lock denied')
+  } else {
+    t.ok(tryLock(handle.fd, { exclusive: true }), 'lock granted')
+  }
 })
 
-test('2 exclusive locks, separate fd', { skip: process.platform === 'darwin' }, async (t) => {
+test('2 exclusive locks, separate fd', async (t) => {
   const file = temporaryFile()
 
   const a = await open(file, 'w+')
@@ -24,7 +32,12 @@ test('2 exclusive locks, separate fd', { skip: process.platform === 'darwin' }, 
   t.teardown(() => b.close())
 
   t.ok(tryLock(a.fd, { exclusive: true }), 'lock granted')
-  t.absent(tryLock(b.fd, { exclusive: true }), 'lock denied')
+
+  if (isDarwin) {
+    t.ok(tryLock(b.fd, { exclusive: true }), 'lock granted')
+  } else {
+    t.absent(tryLock(b.fd, { exclusive: true }), 'lock denied')
+  }
 })
 
 test('2 shared locks + 1 exclusive lock, same fd', async (t) => {
@@ -35,10 +48,15 @@ test('2 shared locks + 1 exclusive lock, same fd', async (t) => {
 
   t.ok(tryLock(handle.fd), 'lock granted')
   t.ok(tryLock(handle.fd), 'lock granted')
-  t.ok(tryLock(handle.fd, { exclusive: true }), 'lock granted')
+
+  if (isWindows) {
+    t.absent(tryLock(handle.fd, { exclusive: true }), 'lock denied')
+  } else {
+    t.ok(tryLock(handle.fd, { exclusive: true }), 'lock granted')
+  }
 })
 
-test('2 shared locks + 1 exclusive lock, separate fd', { skip: process.platform === 'darwin' }, async (t) => {
+test('2 shared locks + 1 exclusive lock, separate fd', async (t) => {
   const file = temporaryFile()
 
   const a = await open(file, 'w+')
@@ -53,7 +71,11 @@ test('2 shared locks + 1 exclusive lock, separate fd', { skip: process.platform 
   t.ok(tryLock(a.fd), 'lock granted')
   t.ok(tryLock(b.fd), 'lock granted')
 
-  t.absent(tryLock(c.fd, { exclusive: true }), 'lock denied')
+  if (isDarwin) {
+    t.ok(tryLock(c.fd, { exclusive: true }), 'lock granted')
+  } else {
+    t.absent(tryLock(c.fd, { exclusive: true }), 'lock denied')
+  }
 
   unlock(a.fd)
   unlock(b.fd)
