@@ -1,6 +1,7 @@
+#define _GNU_SOURCE
+
 #include <errno.h>
 #include <fcntl.h>
-#include <linux/falloc.h>
 #include <stdint.h>
 #include <uv.h>
 
