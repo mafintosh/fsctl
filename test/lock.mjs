@@ -2,9 +2,66 @@ import test from 'brittle'
 import { fork } from 'child_process'
 import { open } from 'fs/promises'
 import { temporaryFile } from 'tempy'
-import { tryLock } from '../index.js'
+import { lock, tryLock, unlock } from '../index.js'
 
-test('2 shared + 1 exclusive lock', async (t) => {
+test('2 exclusive locks, same fd', async (t) => {
+  const file = temporaryFile()
+
+  const handle = await open(file, 'w+')
+  t.teardown(() => handle.close())
+
+  t.ok(tryLock(handle.fd, { exclusive: true }), 'lock granted')
+  t.ok(tryLock(handle.fd, { exclusive: true }), 'lock granted')
+})
+
+test('2 exclusive locks, separate fd', async (t) => {
+  const file = temporaryFile()
+
+  const a = await open(file, 'w+')
+  t.teardown(() => a.close())
+
+  const b = await open(file, 'w+')
+  t.teardown(() => b.close())
+
+  t.ok(tryLock(a.fd, { exclusive: true }), 'lock granted')
+  t.absent(tryLock(b.fd, { exclusive: true }), 'lock denied')
+})
+
+test('2 shared locks + 1 exclusive lock, same fd', async (t) => {
+  const file = temporaryFile()
+
+  const handle = await open(file, 'w+')
+  t.teardown(() => handle.close())
+
+  t.ok(tryLock(handle.fd), 'lock granted')
+  t.ok(tryLock(handle.fd), 'lock granted')
+  t.ok(tryLock(handle.fd, { exclusive: true }), 'lock granted')
+})
+
+test('2 shared locks + 1 exclusive lock, separate fd', async (t) => {
+  const file = temporaryFile()
+
+  const a = await open(file, 'w+')
+  t.teardown(() => a.close())
+
+  const b = await open(file, 'w+')
+  t.teardown(() => b.close())
+
+  const c = await open(file, 'w+')
+  t.teardown(() => c.close())
+
+  t.ok(tryLock(a.fd), 'lock granted')
+  t.ok(tryLock(b.fd), 'lock granted')
+
+  t.absent(tryLock(c.fd, { exclusive: true }), 'lock denied')
+
+  unlock(a.fd)
+  unlock(b.fd)
+
+  t.ok(tryLock(c.fd, { exclusive: true }), 'lock granted')
+})
+
+test('2 shared locks + 1 exclusive lock, separate process', async (t) => {
   const shared = t.test('grant shared locks')
   shared.plan(2)
 
@@ -60,18 +117,21 @@ test('2 shared + 1 exclusive lock', async (t) => {
   await handle.close()
 })
 
-test('2 shared + 1 exclusive lock, same process', async (t) => {
+test('atomic swap', async (t) => {
   const file = temporaryFile()
 
   const a = await open(file, 'w+')
+  t.teardown(() => a.close())
+
   const b = await open(file, 'w+')
-  const c = await open(file, 'w+')
+  t.teardown(() => b.close())
 
   t.ok(tryLock(a.fd), 'lock granted')
-  t.ok(tryLock(b.fd), 'lock granted')
-  t.absent(tryLock(c.fd, { exclusive: true }), 'lock denied')
 
-  await a.close()
-  await b.close()
-  await c.close()
+  const p = lock(b.fd, { exclusive: true })
+
+  await lock(a.fd, { exclusive: true })
+  unlock(a.fd)
+
+  await p
 })
