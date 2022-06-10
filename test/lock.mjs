@@ -14,7 +14,7 @@ test('2 exclusive locks, same fd', async (t) => {
   t.ok(tryLock(handle.fd, { exclusive: true }), 'lock granted')
 })
 
-test('2 exclusive locks, separate fd', async (t) => {
+test('2 exclusive locks, separate fd', { skip: process.platform === 'darwin' }, async (t) => {
   const file = temporaryFile()
 
   const a = await open(file, 'w+')
@@ -38,7 +38,7 @@ test('2 shared locks + 1 exclusive lock, same fd', async (t) => {
   t.ok(tryLock(handle.fd, { exclusive: true }), 'lock granted')
 })
 
-test('2 shared locks + 1 exclusive lock, separate fd', async (t) => {
+test('2 shared locks + 1 exclusive lock, separate fd', { skip: process.platform === 'darwin' }, async (t) => {
   const file = temporaryFile()
 
   const a = await open(file, 'w+')
