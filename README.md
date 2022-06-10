@@ -33,6 +33,10 @@ Request a process level lock on a file, resolving when the lock is granted. If a
 
 To lock only a portion of the file, `offset` and `length` may be passed. A `length` of `0` will request a lock from `offset` to the end of the file.
 
+On macOS, BSD locks are used and so only locks on the whole file are supported.
+
+On Linux, open file description locks are used and require a kernel version >= 3.15.
+
 Note that the lock is only advisory and there is nothing stopping another process from accessing the file by simply ignoring the lock.
 
 Options include:
