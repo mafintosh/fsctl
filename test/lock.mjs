@@ -2,7 +2,7 @@ import test from 'brittle'
 import { fork } from 'child_process'
 import { open } from 'fs/promises'
 import { temporaryFile } from 'tempy'
-import { lock, tryLock, unlock } from '../index.js'
+import { tryLock, unlock } from '../index.js'
 
 test('2 exclusive locks, same fd', async (t) => {
   const file = temporaryFile()
@@ -115,23 +115,4 @@ test('2 shared locks + 1 exclusive lock, separate process', async (t) => {
   p3.kill()
 
   await handle.close()
-})
-
-test('atomic swap', async (t) => {
-  const file = temporaryFile()
-
-  const a = await open(file, 'w+')
-  t.teardown(() => a.close())
-
-  const b = await open(file, 'w+')
-  t.teardown(() => b.close())
-
-  t.ok(tryLock(a.fd), 'lock granted')
-
-  const p = lock(b.fd, { exclusive: true })
-
-  await lock(a.fd, { exclusive: true })
-  unlock(a.fd)
-
-  await p
 })
