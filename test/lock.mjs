@@ -129,6 +129,41 @@ test('2 shared locks + 1 exclusive lock, separate process', async (t) => {
   await handle.close()
 })
 
+test('lock is released on file close', async (t) => {
+  const file = temporaryFile()
+
+  const a = await open(file, 'w+')
+
+  const b = await open(file, 'w+')
+  t.teardown(() => b.close())
+
+  t.ok(tryLock(a.fd, { exclusive: true }), 'lock granted')
+
+  t.absent(tryLock(b.fd), 'lock denied')
+
+  await t.execution(a.close(), 'file closed, lock released')
+
+  t.ok(tryLock(b.fd), 'lock granted')
+})
+
+test('lock is not released on unrelated file close', async (t) => {
+  const file = temporaryFile()
+
+  const a = await open(file, 'w+')
+  t.teardown(() => a.close())
+
+  const b = await open(file, 'w+')
+
+  const c = await open(file, 'w+')
+  t.teardown(() => c.close())
+
+  t.ok(tryLock(a.fd, { exclusive: true }), 'lock granted')
+
+  await t.execution(b.close(), 'file closed, lock intact')
+
+  t.absent(tryLock(c.fd), 'lock denied')
+})
+
 test('downgrade exclusive lock', async (t) => {
   const file = temporaryFile()
 
