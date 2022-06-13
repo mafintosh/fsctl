@@ -56,6 +56,26 @@ Request a process level lock on a file, returning `true` if the lock was granted
 
 Options are the same as `fsctl.lock()`.
 
+#### `await fsctl.downgradeLock(fd[, offset[, length]])`
+
+Request a downgrade from an already held exclusive lock to a shared lock.
+
+On Windows, the downgrade will happen atomically.
+
+#### `const granted = fsctl.tryDowngradeLock(fd[, offset[, length]])`
+
+Request a downgrade from an already held exclusive lock to a shared lock, returning `true` if the lock was granted or `false` if another process currently holds the lock. If `false` is returned, the exclusive lock is lost and must be requested again.
+
+On Windows, the downgrade will happen atomically.
+
+#### `await fsctl.upgradeLock(fd[, offset[, length]])`
+
+Request an upgrade from an already held shared lock to an exclusive lock.
+
+#### `const granted = fsctl.tryUpgradeLock(fd[, offset[, length]])`
+
+Request an upgrade from an already held shared lock to an exclusive lock, returning `true` if the lock was granted or `false` if another process currently holds the lock. If `false` is returned, the shared lock is lost and must be requested again.
+
 #### `fsctl.unlock(fd[, offset[, length]])`
 
 Release a process level lock on a file.

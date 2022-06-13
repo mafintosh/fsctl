@@ -73,6 +73,18 @@ int
 fsctl_try_lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type);
 
 int
+fsctl_downgrade_lock (uv_loop_t *loop, fsctl_lock_t *req, uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_cb cb);
+
+int
+fsctl_try_downgrade_lock (uv_os_fd_t fd, uint64_t offset, size_t length);
+
+int
+fsctl_upgrade_lock (uv_loop_t *loop, fsctl_lock_t *req, uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_cb cb);
+
+int
+fsctl_try_upgrade_lock (uv_os_fd_t fd, uint64_t offset, size_t length);
+
+int
 fsctl_unlock (uv_os_fd_t fd, uint64_t offset, size_t length);
 
 int

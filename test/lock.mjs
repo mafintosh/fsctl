@@ -2,7 +2,7 @@ import test from 'brittle'
 import { fork } from 'child_process'
 import { open } from 'fs/promises'
 import { temporaryFile } from 'tempy'
-import { tryLock, unlock } from '../index.js'
+import { downgradeLock, upgradeLock, tryLock, unlock } from '../index.js'
 
 const isWindows = process.platform === 'win32'
 
@@ -127,4 +127,41 @@ test('2 shared locks + 1 exclusive lock, separate process', async (t) => {
   p3.kill()
 
   await handle.close()
+})
+
+test('downgrade exclusive lock', async (t) => {
+  const file = temporaryFile()
+
+  const a = await open(file, 'w+')
+  t.teardown(() => a.close())
+
+  const b = await open(file, 'w+')
+  t.teardown(() => b.close())
+
+  t.ok(tryLock(a.fd, { exclusive: true }), 'lock granted')
+
+  t.absent(tryLock(b.fd), 'lock denied')
+
+  await t.execution(downgradeLock(a.fd), 'lock downgraded')
+
+  t.ok(tryLock(b.fd), 'lock granted')
+})
+
+test('upgrade shared lock', async (t) => {
+  const file = temporaryFile()
+
+  const a = await open(file, 'w+')
+  t.teardown(() => a.close())
+
+  const b = await open(file, 'w+')
+  t.teardown(() => b.close())
+
+  t.ok(tryLock(a.fd), 'lock granted')
+
+  t.ok(tryLock(b.fd), 'lock granted')
+  unlock(b.fd)
+
+  await t.execution(upgradeLock(a.fd), 'lock upgraded')
+
+  t.absent(tryLock(b.fd), 'lock denied')
 })

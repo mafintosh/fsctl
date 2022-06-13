@@ -66,6 +66,70 @@ exports.tryLock = function tryLock (fd, offset = 0, length = 0, opts = {}) {
   return true
 }
 
+exports.downgradeLock = function downgradeLock (fd, offset = 0, length = 0) {
+  const req = Buffer.alloc(binding.sizeof_fsctl_napi_lock_t)
+  const ctx = {
+    req,
+    resolve: null,
+    reject: null
+  }
+
+  const promise = new Promise((resolve, reject) => {
+    ctx.resolve = resolve
+    ctx.reject = reject
+  })
+
+  const errno = binding.fsctl_napi_downgrade_lock(req, fd, offset, length, ctx, onwork)
+
+  if (errno < 0) return Promise.reject(toError(errno))
+
+  return promise
+}
+
+exports.tryDowngradeLock = function tryDowngradeLock (fd, offset = 0, length = 0) {
+  const errno = binding.fsctl_napi_try_downgrade_lock(fd, offset, length)
+
+  if (errno < 0) {
+    const err = toError(errno)
+    if (err.code === 'EAGAIN') return false
+    throw err
+  }
+
+  return true
+}
+
+exports.upgradeLock = function upgradeLock (fd, offset = 0, length = 0) {
+  const req = Buffer.alloc(binding.sizeof_fsctl_napi_lock_t)
+  const ctx = {
+    req,
+    resolve: null,
+    reject: null
+  }
+
+  const promise = new Promise((resolve, reject) => {
+    ctx.resolve = resolve
+    ctx.reject = reject
+  })
+
+  const errno = binding.fsctl_napi_upgrade_lock(req, fd, offset, length, ctx, onwork)
+
+  if (errno < 0) return Promise.reject(toError(errno))
+
+  return promise
+}
+
+exports.tryUpgradeLock = function tryUpgradeLock (fd, offset = 0, length = 0) {
+  const errno = binding.fsctl_napi_try_upgrade_lock(fd, offset, length)
+
+  if (errno < 0) {
+    const err = toError(errno)
+    if (err.code === 'EAGAIN') return false
+    throw err
+  }
+
+  return true
+}
+
 exports.unlock = function unlock (fd, offset = 0, length = 0) {
   const errno = binding.fsctl_napi_unlock(fd, offset, length)
 
