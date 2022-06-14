@@ -1,6 +1,6 @@
 import { open } from 'fs/promises'
 import minimist from 'minimist'
-import { lock, waitForLock } from '../../index.js'
+import { tryLock, waitForLock } from '../../index.js'
 
 const argv = minimist(process.argv.slice(2), {
   boolean: ['shared'],
@@ -23,7 +23,7 @@ const options = {
 
 const file = await open(argv._[0], argv.mode)
 
-if (!lock(file.fd, offset, length, options)) {
+if (!tryLock(file.fd, offset, length, options)) {
   process.send({ granted: false })
 }
 

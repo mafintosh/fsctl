@@ -6,7 +6,7 @@ function onwork (errno) {
   else this.resolve()
 }
 
-exports.lock = function lock (fd, offset = 0, length = 0, opts = {}) {
+exports.tryLock = function tryLock (fd, offset = 0, length = 0, opts = {}) {
   if (typeof offset === 'object') {
     opts = offset
     offset = 0
@@ -31,6 +31,9 @@ exports.lock = function lock (fd, offset = 0, length = 0, opts = {}) {
 
   return true
 }
+
+// Alias for backwards compatibility
+exports.lock = exports.tryLock
 
 exports.waitForLock = function waitForLock (fd, offset = 0, length = 0, opts = {}) {
   if (typeof offset === 'object') {
@@ -59,7 +62,7 @@ exports.waitForLock = function waitForLock (fd, offset = 0, length = 0, opts = {
     ctx.reject = reject
   })
 
-  const errno = binding.fsctl_napi_lock(req, fd, offset, length, opts.shared ? 0 : 1, ctx, onwork)
+  const errno = binding.fsctl_napi_wait_for_lock(req, fd, offset, length, opts.shared ? 0 : 1, ctx, onwork)
 
   if (errno < 0) return Promise.reject(toError(errno))
 

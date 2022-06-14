@@ -27,7 +27,7 @@ try {
 
 ## API
 
-#### `const granted = fsctl.lock(fd[, offset[, length]][, options])`
+#### `const granted = fsctl.tryLock(fd[, offset[, length]][, options])`
 
 Request a lock on a file, returning `true` if the lock was granted or `false` if another file descriptor currently holds the lock.
 
