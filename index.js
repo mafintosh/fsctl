@@ -21,26 +21,18 @@ exports.lock = function lock (fd, offset = 0, length = 0, opts = {}) {
     opts = {}
   }
 
-  const req = Buffer.alloc(binding.sizeof_fsctl_napi_lock_t)
-  const ctx = {
-    req,
-    resolve: null,
-    reject: null
+  const errno = binding.fsctl_napi_try_lock(fd, offset, length, opts.shared ? 0 : 1)
+
+  if (errno < 0) {
+    const err = toError(errno)
+    if (err.code === 'EAGAIN') return false
+    throw err
   }
 
-  const promise = new Promise((resolve, reject) => {
-    ctx.resolve = resolve
-    ctx.reject = reject
-  })
-
-  const errno = binding.fsctl_napi_lock(req, fd, offset, length, opts.exclusive ? 1 : 0, ctx, onwork)
-
-  if (errno < 0) return Promise.reject(toError(errno))
-
-  return promise
+  return true
 }
 
-exports.tryLock = function tryLock (fd, offset = 0, length = 0, opts = {}) {
+exports.waitForLock = function waitForLock (fd, offset = 0, length = 0, opts = {}) {
   if (typeof offset === 'object') {
     opts = offset
     offset = 0
@@ -55,15 +47,23 @@ exports.tryLock = function tryLock (fd, offset = 0, length = 0, opts = {}) {
     opts = {}
   }
 
-  const errno = binding.fsctl_napi_try_lock(fd, offset, length, opts.exclusive ? 1 : 0)
-
-  if (errno < 0) {
-    const err = toError(errno)
-    if (err.code === 'EAGAIN') return false
-    throw err
+  const req = Buffer.alloc(binding.sizeof_fsctl_napi_lock_t)
+  const ctx = {
+    req,
+    resolve: null,
+    reject: null
   }
 
-  return true
+  const promise = new Promise((resolve, reject) => {
+    ctx.resolve = resolve
+    ctx.reject = reject
+  })
+
+  const errno = binding.fsctl_napi_lock(req, fd, offset, length, opts.shared ? 0 : 1, ctx, onwork)
+
+  if (errno < 0) return Promise.reject(toError(errno))
+
+  return promise
 }
 
 exports.unlock = function unlock (fd, offset = 0, length = 0) {
