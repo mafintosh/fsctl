@@ -37,3 +37,8 @@ int
 fsctl__sparse (uv_os_fd_t fd) {
   return 0;
 }
+
+int
+fsctl__swap (const char *from_path, const char *to_path) {
+  return fsctl__swap_at(AT_FDCWD, from_path, AT_FDCWD, to_path);
+}
