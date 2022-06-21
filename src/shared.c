@@ -93,3 +93,53 @@ fsctl_sparse (uv_loop_t *loop, fsctl_sparse_t *req, uv_os_fd_t fd, fsctl_sparse_
 
   return uv_queue_work(loop, &req->req, fsctl__sparse_work, fsctl__sparse_after_work);
 }
+
+static void
+fsctl__swap_work (uv_work_t *req) {
+  fsctl_swap_t *r = (fsctl_swap_t *) req->data;
+
+  r->result = fsctl__swap(r->from_path, r->to_path);
+}
+
+static void
+fsctl__swap_after_work (uv_work_t *req, int status) {
+  fsctl_swap_t *r = (fsctl_swap_t *) req->data;
+
+  if (r->cb) r->cb(r, r->result);
+}
+
+int
+fsctl_swap (uv_loop_t *loop, fsctl_swap_t *req, const char *from_path, const char *to_path, fsctl_swap_cb cb) {
+  req->from_path = from_path;
+  req->to_path = to_path;
+  req->cb = cb;
+  req->req.data = (void *) req;
+
+  return uv_queue_work(loop, &req->req, fsctl__swap_work, fsctl__swap_after_work);
+}
+
+static void
+fsctl__swap_at_work (uv_work_t *req) {
+  fsctl_swap_at_t *r = (fsctl_swap_at_t *) req->data;
+
+  r->result = fsctl__swap_at(r->from_fd, r->from_path, r->to_fd, r->to_path);
+}
+
+static void
+fsctl__swap_at_after_work (uv_work_t *req, int status) {
+  fsctl_swap_at_t *r = (fsctl_swap_at_t *) req->data;
+
+  if (r->cb) r->cb(r, r->result);
+}
+
+int
+fsctl_swap_at (uv_loop_t *loop, fsctl_swap_at_t *req, uv_os_fd_t from_fd, const char *from_path, uv_os_fd_t to_fd, const char *to_path, fsctl_swap_at_cb cb) {
+  req->from_fd = from_fd;
+  req->from_path = from_path;
+  req->to_fd = to_fd;
+  req->to_path = to_path;
+  req->cb = cb;
+  req->req.data = (void *) req;
+
+  return uv_queue_work(loop, &req->req, fsctl__swap_at_work, fsctl__swap_at_after_work);
+}
