@@ -5,9 +5,7 @@ import { temporaryFile, temporaryDirectory } from 'tempy'
 
 import { swap } from '../index.js'
 
-const isWindows = process.platform === 'win32'
-
-test('swap files', { skip: isWindows }, async (t) => {
+test('swap files', async (t) => {
   const a = temporaryFile()
   const b = temporaryFile()
 
@@ -20,7 +18,7 @@ test('swap files', { skip: isWindows }, async (t) => {
   t.is(await readFile(b, 'utf8'), 'a')
 })
 
-test('swap directories', { skip: isWindows }, async (t) => {
+test('swap directories', async (t) => {
   const a = temporaryDirectory()
   const b = temporaryDirectory()
 
@@ -33,7 +31,7 @@ test('swap directories', { skip: isWindows }, async (t) => {
   t.is(await readFile(join(b, 'a'), 'utf8'), 'a')
 })
 
-test('swap file and directory', { skip: isWindows }, async (t) => {
+test('swap file and directory', async (t) => {
   const a = temporaryDirectory()
   const b = temporaryFile()
 

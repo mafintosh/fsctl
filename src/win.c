@@ -1,5 +1,6 @@
 #include <io.h>
 #include <stdint.h>
+#include <strsafe.h>
 #include <uv.h>
 
 #include "../include/fsctl.h"
@@ -125,7 +126,23 @@ fsctl__sparse (uv_os_fd_t fd) {
 
 int
 fsctl__swap (const char *from_path, const char *to_path) {
-  return UV_ENOSYS;
+  char swap_path[MAX_PATH];
+
+  HRESULT err = StringCbPrintf(swap_path, MAX_PATH, "%s~", to_path);
+
+  if (err < 0) return UV_EINVAL;
+
+  BOOL res = MoveFileEx(to_path, swap_path, MOVEFILE_COPY_ALLOWED);
+
+  if (!res) return uv_translate_sys_error(GetLastError());
+
+  res = MoveFileEx(from_path, to_path, MOVEFILE_COPY_ALLOWED);
+
+  if (!res) return uv_translate_sys_error(GetLastError());
+
+  res = MoveFileEx(swap_path, from_path, MOVEFILE_COPY_ALLOWED);
+
+  return res ? 0 : uv_translate_sys_error(GetLastError());
 }
 
 int
