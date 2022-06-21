@@ -122,3 +122,13 @@ fsctl__sparse (uv_os_fd_t fd) {
 
   return res ? 0 : uv_translate_sys_error(GetLastError());
 }
+
+int
+fsctl__swap (const char *from_path, const char *to_path) {
+  return UV_ENOSYS;
+}
+
+int
+fsctl__swap_at (uv_os_fd_t from_fd, const char *from_path, uv_os_fd_t to_fd, const char *to_path) {
+  return UV_ENOSYS;
+}
