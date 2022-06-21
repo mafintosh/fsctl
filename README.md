@@ -71,6 +71,12 @@ On macOS, the hole must be aligned to block boundaries as the call will otherwis
 
 Mark a file as sparse. On Windows, this operation is required before holes can be punched in the file. On other systems, this operation has no effect.
 
+#### `await fsctl.swap(from, to)`
+
+Swap the paths `from` and `to`, making `from` assume the identity of `to` and `to` assume the identity of `from`.
+
+On macOS and Linux, the swap is performed atomically.
+
 ## License
 
 MIT

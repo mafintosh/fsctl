@@ -118,6 +118,26 @@ exports.sparse = function sparse (fd) {
   return promise
 }
 
+exports.swap = function swap (from, to) {
+  const req = Buffer.alloc(binding.sizeof_fsctl_napi_swap_t)
+  const ctx = {
+    req,
+    resolve: null,
+    reject: null
+  }
+
+  const promise = new Promise((resolve, reject) => {
+    ctx.resolve = resolve
+    ctx.reject = reject
+  })
+
+  const errno = binding.fsctl_napi_swap(req, from, to, ctx, onwork)
+
+  if (errno < 0) return Promise.reject(toError(errno))
+
+  return promise
+}
+
 function toError (errno) {
   const [code, msg] = util.getSystemErrorMap().get(errno)
 
