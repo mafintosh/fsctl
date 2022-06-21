@@ -12,12 +12,12 @@ test('2 exclusive locks, same fd', async (t) => {
   const handle = await open(file, 'w+')
   t.teardown(() => handle.close())
 
-  t.ok(tryLock(handle.fd, { exclusive: true }), 'lock granted')
+  t.ok(tryLock(handle.fd), 'lock granted')
 
   if (isWindows) {
-    t.absent(tryLock(handle.fd, { exclusive: true }), 'lock denied')
+    t.absent(tryLock(handle.fd), 'lock denied')
   } else {
-    t.ok(tryLock(handle.fd, { exclusive: true }), 'lock granted')
+    t.ok(tryLock(handle.fd), 'lock granted')
   }
 })
 
@@ -30,8 +30,8 @@ test('2 exclusive locks, separate fd', async (t) => {
   const b = await open(file, 'w+')
   t.teardown(() => b.close())
 
-  t.ok(tryLock(a.fd, { exclusive: true }), 'lock granted')
-  t.absent(tryLock(b.fd, { exclusive: true }), 'lock denied')
+  t.ok(tryLock(a.fd), 'lock granted')
+  t.absent(tryLock(b.fd), 'lock denied')
 })
 
 test('2 shared locks + 1 exclusive lock, same fd', async (t) => {
@@ -40,13 +40,13 @@ test('2 shared locks + 1 exclusive lock, same fd', async (t) => {
   const handle = await open(file, 'w+')
   t.teardown(() => handle.close())
 
-  t.ok(tryLock(handle.fd), 'lock granted')
-  t.ok(tryLock(handle.fd), 'lock granted')
+  t.ok(tryLock(handle.fd, { shared: true }), 'lock granted')
+  t.ok(tryLock(handle.fd, { shared: true }), 'lock granted')
 
   if (isWindows) {
-    t.absent(tryLock(handle.fd, { exclusive: true }), 'lock denied')
+    t.absent(tryLock(handle.fd), 'lock denied')
   } else {
-    t.ok(tryLock(handle.fd, { exclusive: true }), 'lock granted')
+    t.ok(tryLock(handle.fd), 'lock granted')
   }
 })
 
@@ -62,15 +62,15 @@ test('2 shared locks + 1 exclusive lock, separate fd', async (t) => {
   const c = await open(file, 'w+')
   t.teardown(() => c.close())
 
-  t.ok(tryLock(a.fd), 'lock granted')
-  t.ok(tryLock(b.fd), 'lock granted')
+  t.ok(tryLock(a.fd, { shared: true }), 'lock granted')
+  t.ok(tryLock(b.fd, { shared: true }), 'lock granted')
 
-  t.absent(tryLock(c.fd, { exclusive: true }), 'lock denied')
+  t.absent(tryLock(c.fd), 'lock denied')
 
   unlock(a.fd)
   unlock(b.fd)
 
-  t.ok(tryLock(c.fd, { exclusive: true }), 'lock granted')
+  t.ok(tryLock(c.fd), 'lock granted')
 })
 
 test('2 shared locks + 1 exclusive lock, separate process', async (t) => {
@@ -80,8 +80,14 @@ test('2 shared locks + 1 exclusive lock, separate process', async (t) => {
   const file = temporaryFile()
   const handle = await open(file, 'w+')
 
-  const p1 = fork('test/fixture/lock.mjs', [file])
-  const p2 = fork('test/fixture/lock.mjs', [file])
+  const p1 = fork('test/fixture/lock.mjs', [file,
+    '--mode', 'r',
+    '--shared'
+  ])
+  const p2 = fork('test/fixture/lock.mjs', [file,
+    '--mode', 'r',
+    '--shared'
+  ])
 
   p1.on('message', (message) => {
     shared.alike(message, { granted: true }, 'lock granted')
@@ -96,10 +102,7 @@ test('2 shared locks + 1 exclusive lock, separate process', async (t) => {
   const deny = t.test('deny exclusive lock')
   deny.plan(1)
 
-  const p3 = fork('test/fixture/lock.mjs', [file,
-    '--mode', 'a+',
-    '--exclusive'
-  ])
+  const p3 = fork('test/fixture/lock.mjs', [file])
 
   p3.once('message', (message) => {
     deny.alike(message, { granted: false }, 'lock denied')
@@ -137,7 +140,7 @@ test('lock is released on file close', async (t) => {
   const b = await open(file, 'w+')
   t.teardown(() => b.close())
 
-  t.ok(tryLock(a.fd, { exclusive: true }), 'lock granted')
+  t.ok(tryLock(a.fd), 'lock granted')
 
   t.absent(tryLock(b.fd), 'lock denied')
 
@@ -157,7 +160,7 @@ test('lock is not released on unrelated file close', async (t) => {
   const c = await open(file, 'w+')
   t.teardown(() => c.close())
 
-  t.ok(tryLock(a.fd, { exclusive: true }), 'lock granted')
+  t.ok(tryLock(a.fd), 'lock granted')
 
   await t.execution(b.close(), 'file closed, lock intact')
 
