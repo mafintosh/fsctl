@@ -75,7 +75,7 @@ Mark a file as sparse. On Windows, this operation is required before holes can b
 
 Swap the paths `from` and `to`, making `from` assume the identity of `to` and `to` assume the identity of `from`.
 
-On Windows, the swap is performed by first moving `to` to a swapfile, then moving `from` to `to`, and finally moving the swapfile to `from`.
+On Windows, the swap is performed by first moving `to` to a temporary path, then moving `from` to `to`, and finally moving the temporary path to `from`.
 
 On macOS and Linux, the swap is performed atomically.
 

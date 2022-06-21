@@ -126,13 +126,22 @@ fsctl__sparse (uv_os_fd_t fd) {
 
 int
 fsctl__swap (const char *from_path, const char *to_path) {
-  char swap_path[MAX_PATH];
+  TCHAR temp_path[MAX_PATH];
+  TCHAR swap_path[MAX_PATH];
 
-  HRESULT err = StringCbPrintf(swap_path, MAX_PATH, "%s~", to_path);
+  DWORD bytes = GetTempPath(MAX_PATH, temp_path);
 
-  if (err < 0) return UV_EINVAL;
+  if (bytes == 0) return uv_translate_sys_error(GetLastError());
 
-  BOOL res = MoveFileEx(to_path, swap_path, MOVEFILE_COPY_ALLOWED);
+  bytes = GetTempFileName(temp_path, NULL, 0, swap_path);
+
+  if (bytes == 0) return uv_translate_sys_error(GetLastError());
+
+  BOOL res = MoveFileEx(
+    to_path, 
+    swap_path, 
+    MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING
+  );
 
   if (!res) return uv_translate_sys_error(GetLastError());
 
