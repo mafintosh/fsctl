@@ -69,26 +69,6 @@ exports.waitForLock = function waitForLock (fd, offset = 0, length = 0, opts = {
   return promise
 }
 
-exports.downgradeLock = function downgradeLock (fd, offset = 0, length = 0) {
-  const req = Buffer.alloc(binding.sizeof_fsctl_napi_lock_t)
-  const ctx = {
-    req,
-    resolve: null,
-    reject: null
-  }
-
-  const promise = new Promise((resolve, reject) => {
-    ctx.resolve = resolve
-    ctx.reject = reject
-  })
-
-  const errno = binding.fsctl_napi_downgrade_lock(req, fd, offset, length, ctx, onwork)
-
-  if (errno < 0) return Promise.reject(toError(errno))
-
-  return promise
-}
-
 exports.tryDowngradeLock = function tryDowngradeLock (fd, offset = 0, length = 0) {
   const errno = binding.fsctl_napi_try_downgrade_lock(fd, offset, length)
 
@@ -101,7 +81,7 @@ exports.tryDowngradeLock = function tryDowngradeLock (fd, offset = 0, length = 0
   return true
 }
 
-exports.upgradeLock = function upgradeLock (fd, offset = 0, length = 0) {
+exports.waitForDowngradeLock = function downgradeLock (fd, offset = 0, length = 0) {
   const req = Buffer.alloc(binding.sizeof_fsctl_napi_lock_t)
   const ctx = {
     req,
@@ -114,7 +94,7 @@ exports.upgradeLock = function upgradeLock (fd, offset = 0, length = 0) {
     ctx.reject = reject
   })
 
-  const errno = binding.fsctl_napi_upgrade_lock(req, fd, offset, length, ctx, onwork)
+  const errno = binding.fsctl_napi_wait_for_downgrade_lock(req, fd, offset, length, ctx, onwork)
 
   if (errno < 0) return Promise.reject(toError(errno))
 
@@ -131,6 +111,26 @@ exports.tryUpgradeLock = function tryUpgradeLock (fd, offset = 0, length = 0) {
   }
 
   return true
+}
+
+exports.waitForUpgradeLock = function upgradeLock (fd, offset = 0, length = 0) {
+  const req = Buffer.alloc(binding.sizeof_fsctl_napi_lock_t)
+  const ctx = {
+    req,
+    resolve: null,
+    reject: null
+  }
+
+  const promise = new Promise((resolve, reject) => {
+    ctx.resolve = resolve
+    ctx.reject = reject
+  })
+
+  const errno = binding.fsctl_napi_wait_for_upgrade_lock(req, fd, offset, length, ctx, onwork)
+
+  if (errno < 0) return Promise.reject(toError(errno))
+
+  return promise
 }
 
 exports.unlock = function unlock (fd, offset = 0, length = 0) {

@@ -56,7 +56,7 @@ static void
 fsctl__downgrade_lock_work (uv_work_t *req) {
   fsctl_lock_t *r = (fsctl_lock_t *) req->data;
 
-  r->result = fsctl__downgrade_lock(r->fd, r->offset, r->length);
+  r->result = fsctl__wait_for_downgrade_lock(r->fd, r->offset, r->length);
 }
 
 int
@@ -75,7 +75,7 @@ static void
 fsctl__upgrade_lock_work (uv_work_t *req) {
   fsctl_lock_t *r = (fsctl_lock_t *) req->data;
 
-  r->result = fsctl__upgrade_lock(r->fd, r->offset, r->length);
+  r->result = fsctl__wait_for_upgrade_lock(r->fd, r->offset, r->length);
 }
 
 int

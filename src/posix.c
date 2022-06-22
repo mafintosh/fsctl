@@ -25,23 +25,23 @@ fsctl__wait_for_lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_
 }
 
 int
-fsctl__downgrade_lock (uv_os_fd_t fd, uint64_t offset, size_t length) {
-  return fsctl__lock(fd, offset, length, FSCTL_RDLOCK);
-}
-
-int
 fsctl__try_downgrade_lock (uv_os_fd_t fd, uint64_t offset, size_t length) {
   return fsctl__try_lock(fd, offset, length, FSCTL_RDLOCK);
 }
 
 int
-fsctl__upgrade_lock (uv_os_fd_t fd, uint64_t offset, size_t length) {
-  return fsctl__lock(fd, offset, length, FSCTL_WRLOCK);
+fsctl__wait_for_downgrade_lock (uv_os_fd_t fd, uint64_t offset, size_t length) {
+  return fsctl__wait_for_lock(fd, offset, length, FSCTL_RDLOCK);
 }
 
 int
 fsctl__try_upgrade_lock (uv_os_fd_t fd, uint64_t offset, size_t length) {
   return fsctl__try_lock(fd, offset, length, FSCTL_WRLOCK);
+}
+
+int
+fsctl__wait_for_upgrade_lock (uv_os_fd_t fd, uint64_t offset, size_t length) {
+  return fsctl__wait_for_lock(fd, offset, length, FSCTL_WRLOCK);
 }
 
 int
