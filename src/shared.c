@@ -4,11 +4,22 @@
 #include "../include/fsctl.h"
 #include "platform.h"
 
+int
+fsctl_try_lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type) {
+  int err = fsctl__try_lock(fd, offset, length, type);
+
+  if (err == UV_EACCES || err == UV_EAGAIN || err == UV_EBUSY) {
+    err = UV_EAGAIN;
+  }
+
+  return err;
+}
+
 static void
 fsctl__lock_work (uv_work_t *req) {
   fsctl_lock_t *r = (fsctl_lock_t *) req->data;
 
-  r->result = fsctl__lock(r->fd, r->offset, r->length, r->type);
+  r->result = fsctl__wait_for_lock(r->fd, r->offset, r->length, r->type);
 }
 
 static void
@@ -19,7 +30,7 @@ fsctl__lock_after_work (uv_work_t *req, int status) {
 }
 
 int
-fsctl_lock (uv_loop_t *loop, fsctl_lock_t *req, uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type, fsctl_lock_cb cb) {
+fsctl_wait_for_lock (uv_loop_t *loop, fsctl_lock_t *req, uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type, fsctl_lock_cb cb) {
   req->fd = fd;
   req->offset = offset;
   req->length = length;
@@ -31,8 +42,8 @@ fsctl_lock (uv_loop_t *loop, fsctl_lock_t *req, uv_os_fd_t fd, uint64_t offset, 
 }
 
 int
-fsctl_try_lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type) {
-  int err = fsctl__try_lock(fd, offset, length, type);
+fsctl_try_downgrade_lock (uv_os_fd_t fd, uint64_t offset, size_t length) {
+  int err = fsctl__try_downgrade_lock(fd, offset, length);
 
   if (err == UV_EACCES || err == UV_EAGAIN || err == UV_EBUSY) {
     err = UV_EAGAIN;
@@ -49,7 +60,7 @@ fsctl__downgrade_lock_work (uv_work_t *req) {
 }
 
 int
-fsctl_downgrade_lock (uv_loop_t *loop, fsctl_lock_t *req, uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_cb cb) {
+fsctl_wait_for_downgrade_lock (uv_loop_t *loop, fsctl_lock_t *req, uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_cb cb) {
   req->fd = fd;
   req->offset = offset;
   req->length = length;
@@ -60,34 +71,11 @@ fsctl_downgrade_lock (uv_loop_t *loop, fsctl_lock_t *req, uv_os_fd_t fd, uint64_
   return uv_queue_work(loop, &req->req, fsctl__downgrade_lock_work, fsctl__lock_after_work);
 }
 
-int
-fsctl_try_downgrade_lock (uv_os_fd_t fd, uint64_t offset, size_t length) {
-  int err = fsctl__try_downgrade_lock(fd, offset, length);
-
-  if (err == UV_EACCES || err == UV_EAGAIN || err == UV_EBUSY) {
-    err = UV_EAGAIN;
-  }
-
-  return err;
-}
-
 static void
 fsctl__upgrade_lock_work (uv_work_t *req) {
   fsctl_lock_t *r = (fsctl_lock_t *) req->data;
 
   r->result = fsctl__upgrade_lock(r->fd, r->offset, r->length);
-}
-
-int
-fsctl_upgrade_lock (uv_loop_t *loop, fsctl_lock_t *req, uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_cb cb) {
-  req->fd = fd;
-  req->offset = offset;
-  req->length = length;
-  req->type = FSCTL_WRLOCK;
-  req->cb = cb;
-  req->req.data = (void *) req;
-
-  return uv_queue_work(loop, &req->req, fsctl__upgrade_lock_work, fsctl__lock_after_work);
 }
 
 int
@@ -99,6 +87,18 @@ fsctl_try_upgrade_lock (uv_os_fd_t fd, uint64_t offset, size_t length) {
   }
 
   return err;
+}
+
+int
+fsctl_wait_for_upgrade_lock (uv_loop_t *loop, fsctl_lock_t *req, uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_cb cb) {
+  req->fd = fd;
+  req->offset = offset;
+  req->length = length;
+  req->type = FSCTL_WRLOCK;
+  req->cb = cb;
+  req->req.data = (void *) req;
+
+  return uv_queue_work(loop, &req->req, fsctl__upgrade_lock_work, fsctl__lock_after_work);
 }
 
 int

@@ -6,10 +6,10 @@
 #include "platform.h"
 
 int
-fsctl__lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type) {
+fsctl__try_lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type) {
   if (length == 0) length = SIZE_MAX;
 
-  DWORD flags = 0;
+  DWORD flags = LOCKFILE_FAIL_IMMEDIATELY;
 
   if (type == FSCTL_WRLOCK) flags |= LOCKFILE_EXCLUSIVE_LOCK;
 
@@ -32,10 +32,10 @@ fsctl__lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t ty
 }
 
 int
-fsctl__try_lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type) {
+fsctl__wait_for_lock (uv_os_fd_t fd, uint64_t offset, size_t length, fsctl_lock_type_t type) {
   if (length == 0) length = SIZE_MAX;
 
-  DWORD flags = LOCKFILE_FAIL_IMMEDIATELY;
+  DWORD flags = 0;
 
   if (type == FSCTL_WRLOCK) flags |= LOCKFILE_EXCLUSIVE_LOCK;
 

@@ -6,7 +6,36 @@ function onwork (errno) {
   else this.resolve()
 }
 
-exports.lock = function lock (fd, offset = 0, length = 0, opts = {}) {
+exports.tryLock = function tryLock (fd, offset = 0, length = 0, opts = {}) {
+  if (typeof offset === 'object') {
+    opts = offset
+    offset = 0
+  }
+
+  if (typeof length === 'object') {
+    opts = length
+    length = 0
+  }
+
+  if (typeof opts !== 'object') {
+    opts = {}
+  }
+
+  const errno = binding.fsctl_napi_try_lock(fd, offset, length, opts.shared ? 0 : 1)
+
+  if (errno < 0) {
+    const err = toError(errno)
+    if (err.code === 'EAGAIN') return false
+    throw err
+  }
+
+  return true
+}
+
+// Alias for backwards compatibility
+exports.lock = exports.tryLock
+
+exports.waitForLock = function waitForLock (fd, offset = 0, length = 0, opts = {}) {
   if (typeof offset === 'object') {
     opts = offset
     offset = 0
@@ -33,37 +62,11 @@ exports.lock = function lock (fd, offset = 0, length = 0, opts = {}) {
     ctx.reject = reject
   })
 
-  const errno = binding.fsctl_napi_lock(req, fd, offset, length, opts.exclusive ? 1 : 0, ctx, onwork)
+  const errno = binding.fsctl_napi_wait_for_lock(req, fd, offset, length, opts.shared ? 0 : 1, ctx, onwork)
 
   if (errno < 0) return Promise.reject(toError(errno))
 
   return promise
-}
-
-exports.tryLock = function tryLock (fd, offset = 0, length = 0, opts = {}) {
-  if (typeof offset === 'object') {
-    opts = offset
-    offset = 0
-  }
-
-  if (typeof length === 'object') {
-    opts = length
-    length = 0
-  }
-
-  if (typeof opts !== 'object') {
-    opts = {}
-  }
-
-  const errno = binding.fsctl_napi_try_lock(fd, offset, length, opts.exclusive ? 1 : 0)
-
-  if (errno < 0) {
-    const err = toError(errno)
-    if (err.code === 'EAGAIN') return false
-    throw err
-  }
-
-  return true
 }
 
 exports.downgradeLock = function downgradeLock (fd, offset = 0, length = 0) {
