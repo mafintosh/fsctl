@@ -55,25 +55,25 @@ Request a lock on a file, resolving when the lock is granted. If another file de
 
 Options are the same as `fsctl.lock()`.
 
-#### `await fsctl.downgradeLock(fd[, offset[, length]])`
-
-Request a downgrade from an already held exclusive lock to a shared lock.
-
-On Windows, the downgrade will happen atomically.
-
 #### `const granted = fsctl.tryDowngradeLock(fd[, offset[, length]])`
 
 Request a downgrade from an already held exclusive lock to a shared lock, returning `true` if the lock was granted or `false` if another process currently holds the lock. If `false` is returned, the exclusive lock is lost and must be requested again.
 
-On Windows, the downgrade will happen atomically.
+On Windows, the downgrade will happen atomically and be immediately granted.
 
-#### `await fsctl.upgradeLock(fd[, offset[, length]])`
+#### `await fsctl.waitForDowngradeLock(fd[, offset[, length]])`
 
-Request an upgrade from an already held shared lock to an exclusive lock.
+Request a downgrade from an already held exclusive lock to a shared lock.
+
+On Windows, the downgrade will happen atomically and be immediately granted.
 
 #### `const granted = fsctl.tryUpgradeLock(fd[, offset[, length]])`
 
 Request an upgrade from an already held shared lock to an exclusive lock, returning `true` if the lock was granted or `false` if another process currently holds the lock. If `false` is returned, the shared lock is lost and must be requested again.
+
+#### `await fsctl.waitForUpgradeLock(fd[, offset[, length]])`
+
+Request an upgrade from an already held shared lock to an exclusive lock.
 
 #### `fsctl.unlock(fd[, offset[, length]])`
 
